@@ -1,6 +1,6 @@
 TARGET = sort
-OBJS = sort.o gpu_sort.o
-NVCFLAGS = -arch=sm_52 -std=c++11
+OBJS = sort.o gpu_sort.o cpu_sort.o utils.o
+NVCFLAGS = -arch=sm_52 -std=c++11 --compiler-options "-fopenmp"
 LDFLAGS =
 LIBDIR =
 LIBS =
@@ -21,15 +21,18 @@ $(TARGET): $(OBJS)
 
 %.o: %.cpp
 	@echo Compiling C++ source $<...
-	@$(NVCC) -M $(INCLUDEDIR) $< > $*.d
+	@$(NVCC) -M $(NVCFLAGS) $(INCLUDEDIR) $< > $*.d
 	@$(NVCC) $(NVCFLAGS) $(INCLUDEDIR) $< -c
 
 %.o: %.cu
 	@echo Compiling CUDA source $<...
-	@$(NVCC) -M $(INCLUDEDIR) $< > $*.d
+	@$(NVCC) -M $(NVCFLAGS) $(INCLUDEDIR) $< > $*.d
 	@$(NVCC) $(NVCFLAGS) $(INCLUDEDIR) $< -c
 
 clean:
 	@-rm -rf *.o $(TARGET) *.d
+
+run: $(TARGET)
+	@./$(TARGET)
 
 -include $(OBJS:.o=.d)

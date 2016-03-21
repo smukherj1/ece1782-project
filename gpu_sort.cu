@@ -1,4 +1,4 @@
-#include "gpu_sort.h"
+#include "sort.h"
 
 #include <stdio.h>
 
@@ -16,7 +16,7 @@ __global__ void bitonic_sort_kernel()
 }
 
 
-void gpu_sort()
+void gpu_sort(int *v, int size)
 {
 	bitonic_sort_kernel<<<1, 1>>> ();
 	checkCudaOK(cudaDeviceSynchronize());

@@ -16,6 +16,16 @@ int main(int argc, char *argv[])
 	{
 		cpu_sort(v, size);
 	}
+	else if(opts.target == TARGET::GPU)
+	{
+		gpu_sort(v, size);
+	}
+	else if(opts.target == TARGET::FPGA)
+	{
+		fpga_sort(v, size);
+	}
+
+	verify_sort(v, size);
 
 	delete []v;
 	return 0;

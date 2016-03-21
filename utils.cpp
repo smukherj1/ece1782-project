@@ -92,3 +92,17 @@ void fill_array(int *v, int size)
 		v[i] = rand();
 	}
 }
+
+void verify_sort(int *v, int size)
+{
+	size--;
+
+	for(int i = 0; i < size; ++i)
+	{
+		if(v[i] > v[i + 1])
+		{
+			printf("Error: Array was not sorted properly\n");
+			exit(EXIT_FAILURE);
+		}
+	}
+}

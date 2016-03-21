@@ -28,5 +28,6 @@ void destroy_bin(PROFILE_BIN_T bin);
 double get_elapsed(PROFILE_BIN_T bin);
 
 void fill_array(int *v, int size);
+void verify_sort(int *v, int size);
 
 #endif /* UTILS_H */

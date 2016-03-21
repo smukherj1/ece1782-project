@@ -1,6 +1,8 @@
 #include "sort.h"
+#include "utils.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #define checkCudaOK(val) {\
     if(val != cudaSuccess) {\
@@ -18,6 +20,10 @@ __global__ void bitonic_sort_kernel()
 
 void gpu_sort(int *v, int size)
 {
+	PROFILE_BIN_T bin = create_bin();
 	bitonic_sort_kernel<<<1, 1>>> ();
 	checkCudaOK(cudaDeviceSynchronize());
+	double elapsed = get_elapsed(bin);
+	printf("gpu_sort took %.4f seconds\n", elapsed);
+	destroy_bin(bin);
 }

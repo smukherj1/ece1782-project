@@ -2,6 +2,7 @@
 #include <omp.h>
 #include "utils.h"
 #include <stdio.h>
+#include <stdlib.h>
 
 // Taken from https://github.com/gtgbansal/openmp/blob/master/qsort_parallel.c
 
@@ -60,4 +61,10 @@ void cpu_sort(int *v, int size)
 	double elapsed = get_elapsed(bin);
 	printf("cpu_sort took %.4f seconds\n", elapsed);
 	destroy_bin(bin);
+}
+
+void fpga_sort(int *v, int size)
+{
+	printf("Error: Not implemented\n");
+	exit(EXIT_FAILURE);
 }

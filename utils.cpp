@@ -93,6 +93,23 @@ void fill_array(int *v, int size)
 	}
 }
 
+void dump_array(int *v, int size)
+{
+	FILE *fp = fopen("output.txt", "w");
+	if(fp == NULL)
+	{
+		printf("Error: Could not dump array. Failed to open file for writing\n");
+		return;
+	}
+
+	printf("Info: Dumping output array to output.txt...\n");
+	for(int i = 0; i < size; ++i)
+	{
+		fprintf(fp, "[%d]\t%d\n", i, v[i]);
+	}
+	fclose(fp);
+}
+
 void verify_sort(int *v, int size)
 {
 	size--;
@@ -101,7 +118,9 @@ void verify_sort(int *v, int size)
 	{
 		if(v[i] > v[i + 1])
 		{
-			printf("Error: Array was not sorted properly\n");
+			printf("Error: Array was not sorted properly. v[%d] <= v[%d] failed. Array size is %d\n", 
+				i, i + 1, size + 1);
+			dump_array(v, size + 1);
 			exit(EXIT_FAILURE);
 		}
 	}

@@ -8,7 +8,7 @@ int main(int argc, char *argv[])
 	parse_cmd_opts(argc, argv);
 
 	const CMD_OPTS opts = get_opts();
-	int size = (1 << 20) * opts.size;
+	int size = opts.size;
 	int *v = new int[size];
 
 	fill_array(v, size);

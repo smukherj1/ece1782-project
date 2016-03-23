@@ -81,7 +81,7 @@ double get_elapsed(PROFILE_BIN_T bin)
 	auto now = std::chrono::high_resolution_clock::now();
 	auto before = s_pmap.at(bin);
 	double elapsed = std::chrono::duration<double>(now - before).count();
-	return elapsed;
+	return elapsed * 1000;
 }
 
 void fill_array(int *v, int size)

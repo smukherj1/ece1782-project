@@ -59,7 +59,7 @@ void cpu_sort(int *v, int size)
 		qsort_parallel(v, 0, size);
 	}
 	double elapsed = get_elapsed(bin);
-	printf("cpu_sort took %.4f seconds\n", elapsed);
+	printf("cpu_sort took %.6f ms\n", elapsed);
 	destroy_bin(bin);
 }
 

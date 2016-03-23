@@ -33,6 +33,6 @@ clean:
 	@-rm -rf *.o $(TARGET) *.d
 
 run: $(TARGET)
-	@./$(TARGET)
+	@python exp.py | column -t
 
 -include $(OBJS:.o=.d)

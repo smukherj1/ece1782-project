@@ -65,10 +65,11 @@ __global__ static void bitonic_sort_kernel(int * values, int size)
 {
     extern __shared__ int shared[];
 
-    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    const int bid = blockIdx.x * blockDim.x;
+    const int tid = bid + threadIdx.x;
 
     // Copy input to shared mem.
-    shared[tid] = values[tid];
+    shared[threadIdx.x] = values[tid];
 
     __syncthreads();
 
@@ -79,31 +80,32 @@ __global__ static void bitonic_sort_kernel(int * values, int size)
         for (int j = k / 2; j>0; j /= 2)
         {
             int ixj = tid ^ j;
+
+            __syncthreads();
             
             if (ixj > tid)
             {
+                ixj -= bid;
                 if ((tid & k) == 0)
                 {
-                    if (shared[tid] > shared[ixj])
+                    if (shared[threadIdx.x] > shared[ixj])
                     {
-                        swap(shared[tid], shared[ixj]);
+                        swap(shared[threadIdx.x], shared[ixj]);
                     }
                 }
                 else
                 {
-                    if (shared[tid] < shared[ixj])
+                    if (shared[threadIdx.x] < shared[ixj])
                     {
-                        swap(shared[tid], shared[ixj]);
+                        swap(shared[threadIdx.x], shared[ixj]);
                     }
                 }
             }
-            
-            __syncthreads();
         }
     }
 
     // Write result.
-    values[tid] = shared[tid];
+    values[tid] = shared[threadIdx.x];
 }
 
 /**
@@ -129,7 +131,19 @@ __global__ static void bitonic_sort_kernel(int * values, int size)
   cudaDeviceProp prop;
   cudaGetDeviceProperties(&prop, 0);
 
-  int arr_max_size = prop.sharedMemPerBlock / sizeof(int);
+  int num_blocks, num_threads = size;
+
+  if(num_threads <= 1024)
+  {
+    num_blocks = 1;
+  }
+  else
+  {
+    num_blocks = num_threads / 1024;
+    num_threads = 1024;
+  }
+
+  int arr_max_size = (prop.sharedMemPerBlock * 2) / sizeof(int);
   if(size > arr_max_size)
   {
     printf("Error: Size %d exceeds capabilities of GPU. Must be limited to %d\n", size, arr_max_size);
@@ -138,24 +152,12 @@ __global__ static void bitonic_sort_kernel(int * values, int size)
 
  	cudaMalloc((void**) &d_v, size * sizeof(int));
 
- 	int num_blocks, num_threads = size;
-
- 	if(num_threads <= 1024)
- 	{
- 		num_blocks = 1;
- 	}
- 	else
- 	{
-    num_blocks = num_threads / 1024;
- 		num_threads = 1024;
- 	}
-
 	dim3 blocks(num_blocks,1);
 	dim3 threads(num_threads,1);
 
  	PROFILE_BIN_T bin = create_bin();
   cudaMemcpy(d_v, v, size * sizeof(int), cudaMemcpyHostToDevice);
-  bitonic_sort_kernel<<<blocks, threads, size * sizeof(int)>>>(d_v, size);
+  bitonic_sort_kernel<<<blocks, threads, prop.sharedMemPerBlock>>>(d_v, size);
   cudaMemcpy(v, d_v, size * sizeof(int), cudaMemcpyDeviceToHost);
  	checkCudaOK(cudaDeviceSynchronize());
  	double elapsed = get_elapsed(bin);

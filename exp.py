@@ -21,7 +21,7 @@ def run(device, size):
 def collect(device):
 	avg_time = 0.0
 	for i in range(NUM_TRIALS):
-		avg_time += run(device, 8192)
+		avg_time += run(device, 16384)
 	return (avg_time / NUM_TRIALS)
 
 devices = ['cpu', 'gpu']

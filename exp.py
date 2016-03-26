@@ -5,11 +5,18 @@ NUM_TRIALS = 100
 OUTPUT_RE = re.compile(r'(?P<device>[^_]+)_sort took (?P<time>\d+.?\d*) ms')
 
 def run(device, size):
-	p = subprocess.Popen(['./sort', device, str(size)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-	ret = p.wait()
+
+	itry = 10
 	tot_time = None
-	if ret != 0:
-		raise RuntimeError('Invocation failed for %s:%d'%(device, size))
+
+	while itry >= 0:
+		p = subprocess.Popen(['./sort', device, str(size)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		ret = p.wait()
+		itry -= 1
+		if ret == 0:
+			break
+		elif itry <= 0:
+			raise RuntimeError('Invocation failed for %s:%d'%(device, size))
 	for line in p.stdout.readlines():
 		match = OUTPUT_RE.match(line)
 		if match:

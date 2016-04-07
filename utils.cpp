@@ -20,7 +20,7 @@ void parse_cmd_opts(int argc, char *argv[])
 	{
 		printf("Exactly 2 command line arguments expected\n");
 		printf("./sort <target> <size>\n");
-		printf("target=(cpu|gpu|fpga)\n");
+		printf("target=(cpu|gpu|fpga|all)\n");
 		printf("size=non zero positive integer\n");
 		exit(EXIT_FAILURE);
 	}
@@ -38,9 +38,13 @@ void parse_cmd_opts(int argc, char *argv[])
 	{
 		s_opts.target = TARGET::FPGA;
 	}
+	else if(target == "all")
+	{
+		s_opts.target = TARGET::ALL;
+	}
 	else
 	{
-		printf("Illegal target %s. Choices are (cpu|gpu|fpga)\n", target.c_str());
+		printf("Illegal target %s. Choices are (cpu|gpu|fpga|all)\n", target.c_str());
 		exit(EXIT_FAILURE);
 	}
 
@@ -84,16 +88,16 @@ double get_elapsed(PROFILE_BIN_T bin)
 	return elapsed * 1000;
 }
 
-void fill_array(int *v, int size)
+void fill_array(VECT_T& v, int size)
 {
 	srand(0);
 	for(int i = 0; i < size; ++i)
 	{
-		v[i] = rand();
+		v.push_back(rand());
 	}
 }
 
-void dump_array(int *v, int size)
+void dump_array(const VECT_T& v)
 {
 	FILE *fp = fopen("output.txt", "w");
 	if(fp == NULL)
@@ -103,24 +107,27 @@ void dump_array(int *v, int size)
 	}
 
 	printf("Info: Dumping output array to output.txt...\n");
-	for(int i = 0; i < size; ++i)
+	for(int i = 0; i < static_cast<int>(v.size()); ++i)
 	{
 		fprintf(fp, "[%d]\t%d\n", i, v[i]);
 	}
 	fclose(fp);
 }
 
-void verify_sort(int *v, int size)
+void verify_sort(const VECT_T& v)
 {
-	size--;
-
-	for(int i = 0; i < size; ++i)
+	if(v.empty())
+	{
+		return;
+	}
+	size_t size = v.size() - 1;
+	for(size_t i = 0; i < size; ++i)
 	{
 		if(v[i] > v[i + 1])
 		{
-			printf("Error: Array was not sorted properly. v[%d] <= v[%d] failed. Array size is %d\n", 
+			printf("Error: Array was not sorted properly. v[%lu] <= v[%lu] failed. Array size is %lu\n", 
 				i, i + 1, size + 1);
-			dump_array(v, size + 1);
+			dump_array(v);
 			exit(EXIT_FAILURE);
 		}
 	}

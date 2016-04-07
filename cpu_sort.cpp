@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <tbb/parallel_sort.h>
+
 // Taken from https://github.com/gtgbansal/openmp/blob/master/qsort_parallel.c
 
 
@@ -50,16 +52,25 @@ void qsort_parallel(int *a, int l,int r){
 	}
 }
 
-void cpu_sort(int *v, int size)
+void cpu_sort(VECT_T& v)
 {
 	PROFILE_BIN_T bin = create_bin();
 	#pragma omp parallel
 	{
 		#pragma omp single
-		qsort_parallel(v, 0, size);
+		qsort_parallel(&v[0], 0, static_cast<int>(v.size()));
 	}
 	double elapsed = get_elapsed(bin);
 	printf("cpu_sort took %.6f ms\n", elapsed);
+	destroy_bin(bin);
+}
+
+void cpu_tbb_sort(VECT_T& v)
+{
+	PROFILE_BIN_T bin = create_bin();
+	tbb::parallel_sort(v.begin(), v.end());
+	double elapsed = get_elapsed(bin);
+	printf("cpu_tbb_sort took %.6f ms\n", elapsed);
 	destroy_bin(bin);
 }
 

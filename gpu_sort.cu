@@ -38,6 +38,9 @@
 #include "sort.h"
 #include "utils.h"
 
+#include <thrust/device_vector.h>
+#include <thrust/sort.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -51,11 +54,11 @@
 
 __device__ inline void swap(int & a, int & b)
 {
-  // Alternative swap doesn't use a temporary register:
-  // a ^= b;
-  // b ^= a;
-  // a ^= b;
-  
+    // Alternative swap doesn't use a temporary register:
+    // a ^= b;
+    // b ^= a;
+    // a ^= b;
+
     int tmp = a;
     a = b;
     b = tmp;
@@ -82,7 +85,7 @@ __global__ static void bitonic_sort_kernel(int * values, int size)
             int ixj = tid ^ j;
 
             __syncthreads();
-            
+
             if (ixj > tid)
             {
                 ixj -= bid;
@@ -108,60 +111,104 @@ __global__ static void bitonic_sort_kernel(int * values, int size)
     values[tid] = shared[threadIdx.x];
 }
 
+bool is_bitonic_sort_allowed(const VECT_T& vect)
+{
+    const int *v = &vect[0];
+    int size = static_cast<int>(vect.size());
+
+    if((size & (size - 1)) != 0)
+    {
+        return false;
+    }
+
+    cudaDeviceProp prop;
+    cudaGetDeviceProperties(&prop, 0);
+
+    int arr_max_size = (prop.sharedMemPerBlock * 2) / sizeof(int);
+
+    if(size > arr_max_size)
+    {
+        return false;
+    }
+
+    return true;
+}
+
 /**
  * Inplace bitonic sort using CUDA.
  */
- void gpu_sort(int *v, int size)
- {
- 	int *d_v;
+void gpu_bitonic_sort(VECT_T& vect)
+{
+    int *d_v;
 
-  if((size & (size - 1)) != 0)
-  {
-    printf("Error: size %d is not a power of 2. Bitonic sort needs it to be a power of 2\n", size);
-    exit(EXIT_FAILURE);
-  }
+    int *v = &vect[0];
+    int size = static_cast<int>(vect.size());
 
-  int num_cuda_devices;
-  cudaGetDeviceCount(&num_cuda_devices);
-  if(num_cuda_devices <= 0)
-  {
-    printf("Error: No CUDA capable devices were detected.\n");
-    exit(EXIT_FAILURE);
-  }
-  cudaDeviceProp prop;
-  cudaGetDeviceProperties(&prop, 0);
+    if((size & (size - 1)) != 0)
+    {
+        printf("Error: size %d is not a power of 2. Bitonic sort needs it to be a power of 2\n", size);
+        exit(EXIT_FAILURE);
+    }
 
-  int num_blocks, num_threads = size;
+    int num_cuda_devices;
+    cudaGetDeviceCount(&num_cuda_devices);
+    if(num_cuda_devices <= 0)
+    {
+        printf("Error: No CUDA capable devices were detected.\n");
+        exit(EXIT_FAILURE);
+    }
+    cudaDeviceProp prop;
+    cudaGetDeviceProperties(&prop, 0);
 
-  if(num_threads <= 1024)
-  {
-    num_blocks = 1;
-  }
-  else
-  {
-    num_blocks = num_threads / 1024;
-    num_threads = 1024;
-  }
+    int num_blocks, num_threads = size;
 
-  int arr_max_size = (prop.sharedMemPerBlock * 2) / sizeof(int);
-  if(size > arr_max_size)
-  {
-    printf("Error: Size %d exceeds capabilities of GPU. Must be limited to %d\n", size, arr_max_size);
-    exit(EXIT_FAILURE);
-  }
+    if(num_threads <= 1024)
+    {
+        num_blocks = 1;
+    }
+    else
+    {
+        num_blocks = num_threads / 1024;
+        num_threads = 1024;
+    }
 
- 	cudaMalloc((void**) &d_v, size * sizeof(int));
+    int arr_max_size = (prop.sharedMemPerBlock * 2) / sizeof(int);
+    if(size > arr_max_size)
+    {
+        printf("Error: Size %d exceeds capabilities of GPU. Must be limited to %d\n", size, arr_max_size);
+        exit(EXIT_FAILURE);
+    }
 
-	dim3 blocks(num_blocks,1);
-	dim3 threads(num_threads,1);
+    cudaMalloc((void**) &d_v, size * sizeof(int));
 
- 	PROFILE_BIN_T bin = create_bin();
-  cudaMemcpy(d_v, v, size * sizeof(int), cudaMemcpyHostToDevice);
-  bitonic_sort_kernel<<<blocks, threads, prop.sharedMemPerBlock>>>(d_v, size);
-  cudaMemcpy(v, d_v, size * sizeof(int), cudaMemcpyDeviceToHost);
- 	checkCudaOK(cudaDeviceSynchronize());
- 	double elapsed = get_elapsed(bin);
- 	printf("gpu_sort took %.6f ms\n", elapsed);
- 	destroy_bin(bin);
- 	cudaFree(d_v);
- }
+    dim3 blocks(num_blocks,1);
+    dim3 threads(num_threads,1);
+
+    PROFILE_BIN_T bin = create_bin();
+    cudaMemcpy(d_v, v, size * sizeof(int), cudaMemcpyHostToDevice);
+    bitonic_sort_kernel<<<blocks, threads, prop.sharedMemPerBlock>>>(d_v, size);
+    cudaMemcpy(v, d_v, size * sizeof(int), cudaMemcpyDeviceToHost);
+    checkCudaOK(cudaDeviceSynchronize());
+    double elapsed = get_elapsed(bin);
+    printf("gpu_bitonic_sort took %.6f ms\n", elapsed);
+    destroy_bin(bin);
+    cudaFree(d_v);
+}
+
+void gpu_thrust_sort(VECT_T& v)
+{
+    thrust::device_vector<int> d_v(v.size());
+
+    PROFILE_BIN_T bin = create_bin();
+    d_v = v;
+    thrust::sort(d_v.begin(), d_v.end());
+    thrust::copy(d_v.begin(), d_v.end(), v.begin());
+    double elapsed = get_elapsed(bin);
+    printf("gpu_thrust_sort took %.6f ms\n", elapsed);
+    destroy_bin(bin);
+}
+
+void gpu_cudapp_sort(VECT_T& v)
+{
+
+}

@@ -1,12 +1,15 @@
 #ifndef UTILS_H
 #define UTILS_H
 
+#include "sort.h"
+
 typedef int PROFILE_BIN_T;
 
 enum class TARGET {
 	CPU,
 	GPU,
-	FPGA
+	FPGA,
+	ALL
 };
 
 struct CMD_OPTS
@@ -27,7 +30,7 @@ PROFILE_BIN_T create_bin();
 void destroy_bin(PROFILE_BIN_T bin);
 double get_elapsed(PROFILE_BIN_T bin);
 
-void fill_array(int *v, int size);
-void verify_sort(int *v, int size);
+void fill_array(VECT_T& v, int size);
+void verify_sort(const VECT_T& v);
 
 #endif /* UTILS_H */

@@ -1,10 +1,10 @@
 TARGET = sort
 OBJS = sort.o gpu_sort.o cpu_sort.o utils.o
 NVCFLAGS = -arch=sm_52 -std=c++11 --compiler-options "-fopenmp"
-LDFLAGS =
-LIBDIR =
+LDFLAGS = -ltbb
+LIBDIR = -L.
 LIBS =
-INCLUDEDIR =
+INCLUDEDIR = -Iinclude
 NVCC = nvcc
 DEBUG = 0
 

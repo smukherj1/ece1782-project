@@ -16,16 +16,16 @@ void run_cpu_sort(VECT_T& v)
 
 void run_gpu_sort(VECT_T& v)
 {
-	VECT_T v1 = v;
-	gpu_thrust_sort(v1);
-	verify_sort(v1);
-
 	if(is_bitonic_sort_allowed(v))
 	{
-		v1 = v;
+		VECT_T v1 = v;
 		gpu_bitonic_sort(v1);
 		verify_sort(v1);
 	}
+
+	VECT_T v1 = v;
+	gpu_thrust_sort(v1);
+	verify_sort(v1);
 }
 
 void run_fpga_sort(VECT_T& v)

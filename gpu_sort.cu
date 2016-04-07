@@ -207,8 +207,3 @@ void gpu_thrust_sort(VECT_T& v)
     printf("gpu_thrust_sort took %.6f ms\n", elapsed);
     destroy_bin(bin);
 }
-
-void gpu_cudapp_sort(VECT_T& v)
-{
-
-}

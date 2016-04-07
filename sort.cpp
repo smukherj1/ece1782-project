@@ -26,10 +26,6 @@ void run_gpu_sort(VECT_T& v)
 		gpu_bitonic_sort(v1);
 		verify_sort(v1);
 	}
-
-	//v1 = v;
-	//gpu_cudapp_sort(v1);
-	//verify_sort(v1);
 }
 
 void run_fpga_sort(VECT_T& v)

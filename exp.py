@@ -1,13 +1,13 @@
 import subprocess
 import re
 
-NUM_TRIALS = 100
-OUTPUT_RE = re.compile(r'(?P<device>[^_]+)_sort took (?P<time>\d+.?\d*) ms')
+NUM_TRIALS = 10
+OUTPUT_RE = re.compile(r'(?P<device>[^\s]+) took (?P<time>\d+.?\d*) ms')
 
 def run(device, size):
 
 	itry = 10
-	tot_time = None
+	time_map = {}
 
 	while itry >= 0:
 		p = subprocess.Popen(['./sort', device, str(size)], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -20,23 +20,43 @@ def run(device, size):
 	for line in p.stdout.readlines():
 		match = OUTPUT_RE.match(line)
 		if match:
-			assert match.group('device') == device
-			tot_time = float(match.group('time'))
-	assert(tot_time != None)
-	return tot_time
+			case = match.group('device')
+			time_ = float(match.group('time'))
+			time_map[case] = time_
 
-def collect(device):
-	avg_time = 0.0
+	assert(time_map)
+	return time_map
+
+def accum_time(time_map, case, case_time):
+	if case in time_map:
+		time_map[case] += case_time
+	else:
+		time_map[case] = case_time
+	return
+
+def report(time_map):
+	base_time = time_map['cpu_sort']
+	sorted_keys = sorted(time_map.keys(), key = lambda case : base_time /time_map[case])
+	for icase in sorted_keys:
+		print '%s\t%.6f\t%.2f'%(icase, time_map[icase],  base_time / time_map[icase])
+	return
+
+def collect(device, arrlen):
+	avg_time = {}
 	for i in range(NUM_TRIALS):
-		avg_time += run(device, 16384)
-	return (avg_time / NUM_TRIALS)
+		case_table = run(device, arrlen)
+		for icase in case_table:
+			accum_time(avg_time, icase, case_table[icase])
+	for icase in avg_time:
+		avg_time[icase] /= NUM_TRIALS
+	return avg_time
 
-devices = ['cpu', 'gpu']
-cpu_time = None
+
+
 print 'Device', 'Time(ms)', 'SpeedUp'
-for idevice in devices:
-	avg_time = collect(idevice)
-	if idevice == 'cpu':
-		cpu_time = avg_time
-	print idevice, '%.2f'%avg_time, '%.2f'%(cpu_time / avg_time)
+for ilen in (16384, 100000, 1000000, 300000000):
+	print '<---------Length=%d------------>'%ilen
+	avg_time = collect('all', ilen)
+	report(avg_time)
+	
 

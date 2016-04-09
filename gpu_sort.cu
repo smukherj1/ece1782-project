@@ -243,6 +243,7 @@ void gpu_merge_bitonic_sort_recursive_helper(int *d_v, int *d_v_temp, int size, 
         calc_kernel_dim(size, blocks, threads);
         //printf("Invoking bitonic_sort_kernel with size %d\n", size);
         bitonic_sort_kernel<<<blocks, threads, sharedMemPerBlock>>>(d_v, size);
+        //checkCudaOK(cudaDeviceSynchronize());
     }
     else
     {
@@ -253,12 +254,15 @@ void gpu_merge_bitonic_sort_recursive_helper(int *d_v, int *d_v_temp, int size, 
 
         thrust::device_ptr<int> dp0_begin(d_v);
         thrust::device_ptr<int> dp0_end(d_v + hsize);
-        thrust::device_ptr<int> dp1_begin(dp0_end);
+        thrust::device_ptr<int> dp1_begin(d_v + hsize);
         thrust::device_ptr<int> dp1_end(d_v + size);
         thrust::device_ptr<int> dp2(d_v_temp);
 
+        //checkCudaOK(cudaDeviceSynchronize());
         //thrust::merge(dp0_begin, dp0_end, dp1_begin, dp1_end, dp2);
+        //checkCudaOK(cudaDeviceSynchronize());
         cudaMemcpy(d_v, d_v_temp, size * sizeof(int), cudaMemcpyDeviceToDevice);
+        //checkCudaOK(cudaDeviceSynchronize());
     }
 }
 
@@ -297,7 +301,7 @@ void gpu_merge_bitonic_sort(VECT_T& vect)
     cudaMemcpy(v, d_v, size * sizeof(int), cudaMemcpyDeviceToHost);
     checkCudaOK(cudaDeviceSynchronize());
     double elapsed = get_elapsed(bin);
-    printf("gpu_merge_bitonic_sort took %.6f ms. Only first %d elements were sorted\n", elapsed, get_highest_bit(size));
+    printf("gpu_merge_bitonic_sort took %.6f ms.\n", elapsed);
     destroy_bin(bin);
 
     cudaFree(d_v);

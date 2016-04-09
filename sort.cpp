@@ -23,6 +23,11 @@ void run_gpu_sort(VECT_T& v)
 		verify_sort(v1);
 	}
 
+	{
+		VECT_T v1 = v;
+		gpu_merge_bitonic_sort(v1);
+	}
+
 	VECT_T v1 = v;
 	gpu_thrust_sort(v1);
 	verify_sort(v1);

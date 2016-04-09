@@ -1,8 +1,13 @@
 import subprocess
 import re
 
-NUM_TRIALS = 10
 OUTPUT_RE = re.compile(r'(?P<device>[^\s]+) took (?P<time>\d+.?\d*) ms')
+
+def NUM_TRIALS(size):
+	if size < 1000000:
+		return 10
+	else:
+		return 3
 
 def run(device, size):
 
@@ -41,22 +46,22 @@ def report(time_map):
 		print '%s\t%.6f\t%.2f'%(icase, time_map[icase],  base_time / time_map[icase])
 	return
 
-def collect(device, arrlen):
+def collect(device, arrlen, num_trials):
 	avg_time = {}
-	for i in range(NUM_TRIALS):
+	for i in range(num_trials):
 		case_table = run(device, arrlen)
 		for icase in case_table:
 			accum_time(avg_time, icase, case_table[icase])
 	for icase in avg_time:
-		avg_time[icase] /= NUM_TRIALS
+		avg_time[icase] /= num_trials
 	return avg_time
 
 
 
 print 'Device', 'Time(ms)', 'SpeedUp'
-for ilen in (16384, 100000, 1000000, 300000000):
+for ilen in (4096, 8192, 16384, 100e3, 1e6, 100e6, 150e6, 300e6):
 	print '<---------Length=%d------------>'%ilen
-	avg_time = collect('all', ilen)
+	avg_time = collect('all', ilen, NUM_TRIALS(ilen))
 	report(avg_time)
 	
 

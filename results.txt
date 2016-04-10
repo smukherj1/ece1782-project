@@ -1,0 +1,43 @@
+Device                                   Time(ms)      SpeedUp
+<---------Length=4096------------>
+cpu_sort                                 6.147102      1.00
+cpu_tbb_sort                             0.434628      14.14
+gpu_thrust_sort                          0.413977      14.85
+gpu_bitonic_sort                         0.063429      96.91
+gpu_merge_bitonic_sort                   0.058082      105.83
+<---------Length=8192------------>
+cpu_sort                                 4.463854      1.00
+cpu_tbb_sort                             0.712348      6.27
+gpu_thrust_sort                          0.414100      10.78
+gpu_bitonic_sort                         0.073074      61.09
+gpu_merge_bitonic_sort                   0.072684      61.41
+<---------Length=16384------------>
+cpu_sort                                 6.283923      1.00
+cpu_tbb_sort                             1.135981      5.53
+gpu_thrust_sort                          0.439032      14.31
+gpu_merge_bitonic_sort                   0.138081      45.51
+gpu_bitonic_sort                         0.135021      46.54
+<---------Length=100000------------>
+cpu_sort                                 7.373670      1.00
+cpu_tbb_sort                             7.174963      1.03
+gpu_merge_bitonic_sort                   0.530547      13.90
+gpu_thrust_sort                          0.515579      14.30
+<---------Length=1000000------------>
+cpu_sort                                 32.136071     1.00
+cpu_tbb_sort                             29.823686     1.08
+gpu_merge_bitonic_sort                   3.832849      8.38
+gpu_thrust_sort                          2.778738      11.56
+<---------Length=100000000------------>
+cpu_sort                                 3388.751543   1.00
+cpu_tbb_sort                             2166.933282   1.56
+gpu_merge_bitonic_sort                   463.947355    7.30
+gpu_thrust_sort                          215.376614    15.73
+<---------Length=150000000------------>
+cpu_sort                                 4512.715900   1.00
+cpu_tbb_sort                             3285.841076   1.37
+gpu_merge_bitonic_sort                   856.170995    5.27
+gpu_thrust_sort                          314.327473    14.36
+<---------Length=300000000------------>
+cpu_sort                                 10413.141201  1.00
+cpu_tbb_sort                             7003.022573   1.49
+gpu_thrust_sort                          631.274036    16.50

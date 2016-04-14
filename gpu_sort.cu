@@ -81,38 +81,40 @@ __device__ __forceinline__ void fill_extra_space(int tid, int *values, int size,
     }
 }
 
-__global__ static void bitonic_sort_kernel_no_smem(int * values, int size, int asize)
+__global__ void fill_extra_space_kernel(int *values, int size, int asize)
+{
+    const int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    if(asize < size)
+    {
+        int idx = asize + tid;
+        if(idx < size)
+        {
+            values[idx] = INT_MAX;
+            //printf("Copy %d to [%d]\n", INT_MAX, idx);
+        }
+    }
+}
+
+__global__ static void bitonic_sort_kernel_no_smem(int * values, int size, int k, int j)
 {
     const int tid = blockIdx.x * blockDim.x + threadIdx.x;
 
-    fill_extra_space(tid, values, size, asize);
+    int ixj = tid ^ j;
 
-    // Parallel bitonic sort.
-    for (int k = 2; k <= size; k *= 2)
+    if (ixj > tid)
     {
-        // Bitonic merge:
-        for (int j = k / 2; j>0; j /= 2)
+        if ((tid & k) == 0)
         {
-            int ixj = tid ^ j;
-
-            __syncthreads();
-
-            if (ixj > tid)
+            if (values[tid] > values[ixj])
             {
-                if ((tid & k) == 0)
-                {
-                    if (values[tid] > values[ixj])
-                    {
-                        swap(values[tid], values[ixj]);
-                    }
-                }
-                else
-                {
-                    if (values[tid] < values[ixj])
-                    {
-                        swap(values[tid], values[ixj]);
-                    }
-                }
+                swap(values[tid], values[ixj]);
+            }
+        }
+        else
+        {
+            if (values[tid] < values[ixj])
+            {
+                swap(values[tid], values[ixj]);
             }
         }
     }
@@ -169,6 +171,20 @@ __global__ static void bitonic_sort_kernel(int * values, int size, int asize)
     values[tid] = shared[threadIdx.x];
 }
 
+void bitonic_sort_kernel_no_smem_wrapper(int * values, int size, int asize, int num_blocks, int num_threads)
+{
+    fill_extra_space_kernel<<<num_blocks, num_threads>>>(values, size, asize);
+    // Parallel bitonic sort.
+    for (int k = 2; k <= size; k *= 2)
+    {
+        // Bitonic merge:
+        for (int j = k / 2; j>0; j /= 2)
+        {
+            bitonic_sort_kernel_no_smem<<<num_blocks, num_threads>>>(values, size, k, j);
+        }
+    }
+}
+
 bool is_bitonic_sort_allowed(const VECT_T& vect)
 {
     return true;
@@ -192,7 +208,7 @@ void gpu_bitonic_sort_kernel_wrapper(int *v,
     }
     else
     {
-        bitonic_sort_kernel_no_smem<<<blocks, threads>>>(d_v, bitonic_sort_size, size);
+        bitonic_sort_kernel_no_smem_wrapper(d_v, bitonic_sort_size, size, num_blocks, num_threads);
     }
     cudaMemcpy(v, d_v, size * sizeof(int), cudaMemcpyDeviceToHost);
     checkCudaOK(cudaDeviceSynchronize());

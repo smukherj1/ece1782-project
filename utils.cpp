@@ -97,16 +97,16 @@ void fill_array(VECT_T& v, int size)
 	}
 }
 
-void dump_array(const VECT_T& v)
+void dump_array(const VECT_T& v, const char *filename)
 {
-	FILE *fp = fopen("output.txt", "w");
+	FILE *fp = fopen(filename, "w");
 	if(fp == NULL)
 	{
 		printf("Error: Could not dump array. Failed to open file for writing\n");
 		return;
 	}
 
-	printf("Info: Dumping output array to output.txt...\n");
+	printf("Info: Dumping array to %s...\n", filename);
 	for(int i = 0; i < static_cast<int>(v.size()); ++i)
 	{
 		fprintf(fp, "[%d]\t%d\n", i, v[i]);
@@ -114,7 +114,7 @@ void dump_array(const VECT_T& v)
 	fclose(fp);
 }
 
-void verify_sort(const VECT_T& v)
+void verify_sort(const VECT_T& v, const VECT_T& orig_v)
 {
 	if(v.empty())
 	{
@@ -127,7 +127,8 @@ void verify_sort(const VECT_T& v)
 		{
 			printf("Error: Array was not sorted properly. v[%lu] <= v[%lu] failed. Array size is %lu\n", 
 				i, i + 1, size + 1);
-			dump_array(v);
+			dump_array(v, "new.txt");
+			dump_array(orig_v, "old.txt");
 			exit(EXIT_FAILURE);
 		}
 	}

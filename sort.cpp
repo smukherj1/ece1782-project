@@ -7,30 +7,32 @@ void run_cpu_sort(VECT_T& v)
 {
 	VECT_T v1 = v;
 	cpu_sort(v1);
-	verify_sort(v1);
+	verify_sort(v1, v);
 
 	v1 = v;
 	cpu_tbb_sort(v1);
-	verify_sort(v1);
+	verify_sort(v1, v);
 }
 
 void run_gpu_sort(VECT_T& v)
 {
-	if(is_bitonic_sort_allowed(v))
 	{
 		VECT_T v1 = v;
 		gpu_bitonic_sort(v1);
-		verify_sort(v1);
+		verify_sort(v1, v);
 	}
 
+#if 0
 	{
 		VECT_T v1 = v;
 		gpu_merge_bitonic_sort(v1);
 	}
 
+
 	VECT_T v1 = v;
 	gpu_thrust_sort(v1);
 	verify_sort(v1);
+#endif
 }
 
 void run_fpga_sort(VECT_T& v)

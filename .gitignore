@@ -2,4 +2,5 @@
 *.o
 sort
 output.txt
-
+new.txt*
+old.txt*

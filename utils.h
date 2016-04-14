@@ -31,6 +31,6 @@ void destroy_bin(PROFILE_BIN_T bin);
 double get_elapsed(PROFILE_BIN_T bin);
 
 void fill_array(VECT_T& v, int size);
-void verify_sort(const VECT_T& v);
+void verify_sort(const VECT_T& v, const VECT_T& orig_v);
 
 #endif /* UTILS_H */

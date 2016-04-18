@@ -59,7 +59,10 @@ def collect(device, arrlen, num_trials):
 
 
 print 'Device', 'Time(ms)', 'SpeedUp'
-for ilen in (4096, 8192, 16384, 100e3, 1e6, 100e6, 150e6, 300e6):
+#len_list = (4096, 8192, 16384, 100e3, 1e6, 100e6, 150e6, 300e6)
+len_list = (131072, 33554432, 134217728)
+
+for ilen in len_list:
 	print '<---------Length=%d------------>'%ilen
 	avg_time = collect('all', ilen, NUM_TRIALS(ilen))
 	report(avg_time)

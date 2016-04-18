@@ -1,0 +1,16 @@
+Device                                   Time(ms)     SpeedUp
+<---------Length=131072------------>
+cpu_tbb_sort                             8.998327     0.86
+cpu_sort                                 7.694630     1.00
+gpu_bitonic_sort                         1.585027     4.85
+gpu_thrust_sort                          0.681648     11.29
+<---------Length=33554432------------>
+cpu_sort                                 1062.190256  1.00
+cpu_tbb_sort                             781.476243   1.36
+gpu_bitonic_sort                         610.096239   1.74
+gpu_thrust_sort                          77.604998    13.69
+<---------Length=134217728------------>
+cpu_sort                                 4375.371945  1.00
+cpu_tbb_sort                             3092.534547  1.41
+gpu_bitonic_sort                         2846.997029  1.54
+gpu_thrust_sort                          307.265918   14.24
